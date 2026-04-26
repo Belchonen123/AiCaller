@@ -1,0 +1,67 @@
+{
+  "agent_name": "Example Michigan Home Help Intake",
+  "voice_id": "11labs-Rachel",
+  "language": "en-US",
+  "response_engine": {
+    "type": "retell-llm"
+  },
+  "webhook_url": "{{webhook_base_url}}/api/retell/webhook",
+  "interruption_sensitivity": 0.4,
+  "enable_backchannel": true,
+  "backchannel_frequency": 0.8,
+  "responsiveness": 0.9,
+  "voice_speed": 0.95,
+  "voice_temperature": 0.5,
+  "ambient_sound": null,
+  "post_call_analysis_model": "gpt-4o",
+  "post_call_analysis_data": [
+    {
+      "type": "string",
+      "name": "call_summary",
+      "description": "Brief summary of why the caller contacted the agency."
+    },
+    {
+      "type": "string",
+      "name": "caller_type",
+      "description": "new_client_referral, caregiver_application, existing_client, or other."
+    },
+    {
+      "type": "boolean",
+      "name": "urgent_followup_needed",
+      "description": "True when the caller described an urgent care, safety, or escalation need."
+    }
+  ],
+  "allow_user_dtmf": true,
+  "normalize_for_speech": true,
+  "end_call_after_silence_ms": 12000,
+  "max_call_duration_ms": 900000,
+  "begin_message_delay_ms": 500,
+  "enable_transcription_formatting": true,
+  "retell_llm": {
+    "begin_message": "Hi, thanks for calling {{agency_name}}. How can I help you today?",
+    "model": "claude-sonnet-4-6",
+    "model_temperature": 0.2,
+    "default_dynamic_variables": {
+      "agency_name": "our agency",
+      "agency_callback_hours": "within 2 business hours"
+    },
+    "general_prompt": "You are the inbound phone assistant for {{agency_name}}, a Michigan Medicaid Home Help agency.\n\nYour job is to answer first intake calls warmly, gather basic information, and make it easy for staff to call the person back {{agency_callback_hours}}.\n\nNever promise eligibility, approved hours, a start date, or medical/legal advice. If the caller describes an emergency or immediate danger, tell them to call 911 or local emergency services.\n\nClassify the call as one of: new client referral, caregiver application, existing client, or other. Ask one question at a time. Close by confirming the best callback number and telling the caller a staff member will follow up {{agency_callback_hours}}.",
+    "general_tools": [
+      {
+        "type": "function",
+        "name": "lookup_caller",
+        "url": "{{webhook_base_url}}/api/retell/tools/lookup-caller",
+        "method": "POST",
+        "args_schema": {
+          "type": "object",
+          "properties": {
+            "phone_number": {
+              "type": "string"
+            }
+          },
+          "required": ["phone_number"]
+        }
+      }
+    ]
+  }
+}
